@@ -1,0 +1,31 @@
+baseURL = 'https://example.org/'
+languageCode = 'en-au'
+title = 'Aurillium'
+theme = 'Stack'
+
+[[menu.social]]
+identifier = "github"
+name = "GitHub"
+url = "https://github.com/Aurillium"
+weight = 1
+
+[menu.social.params]
+icon = "brand-github"
+
+[[menu.social]]
+identifier = "linkedin"
+name = "LinkedIn"
+url = "https://www.linkedin.com/in/memphis-marshall"
+weight = 10
+
+[menu.social.params]
+icon = "brand-linkedin"
+
+[[menu.social]]
+identifier = "htb"
+name = "HackTheBox"
+url = "https://app.hackthebox.com/profile/990484"
+weight = 20
+
+[menu.social.params]
+icon = "brand-htb"
