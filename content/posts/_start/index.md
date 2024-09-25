@@ -2,8 +2,8 @@
 title = '_start'
 date = 2024-09-25T00:10:43+08:00
 draft = false
-description = ""
-tags = ["post tag"]
+description = "The beginning of the blog"
+tags = []
 categories = ["misc"]
 +++
 

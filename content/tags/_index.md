@@ -2,7 +2,7 @@
 menu:
     main:
         name: Tags
-        weight: -99
+        weight: 100
         params:
             icon: tag
 ---
