@@ -87,7 +87,7 @@ function oneko() {
     nekoEl.style.height = "32px";
     nekoEl.style.position = "fixed";
     nekoEl.style.pointerEvents = "none";
-    nekoEl.style.backgroundImage = "url('/img/maia_oneko.gif')";
+    nekoEl.style.backgroundImage = "url('/img/oneko.gif')";
     nekoEl.style.imageRendering = "pixelated";
     nekoEl.style.left = `${nekoPosX}px`;
     nekoEl.style.top = `${nekoPosY}px`;
@@ -99,7 +99,7 @@ function oneko() {
       mousePosY = event.clientY;
     };
 
-    window.onekoInterval = setInterval(frame, 100);
+    window.onekoInterval = setInterval(frame, 120);
   }
 
   function setSprite(name, frame) {
