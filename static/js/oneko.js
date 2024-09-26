@@ -9,10 +9,12 @@ function getRandomInt(min, max) {
 
 function oneko() {
   const nekoEl = document.createElement("div");
+  let following = true;
   let nekoPosX = getRandomInt(32, window.innerWidth - 63);
   let nekoPosY = getRandomInt(32, window.innerHeight - 63);
   let mousePosX = nekoPosX - 32;
   let mousePosY = nekoPosY - 32;
+  let evenFrame = true;
   let frameCount = 0;
   let idleTime = 0;
   let idleAnimation = null;
@@ -86,20 +88,28 @@ function oneko() {
     nekoEl.style.width = "32px";
     nekoEl.style.height = "32px";
     nekoEl.style.position = "fixed";
-    nekoEl.style.pointerEvents = "none";
+    //nekoEl.style.pointerEvents = "none";  // so we can click the cat
     nekoEl.style.backgroundImage = "url('/img/oneko.gif')";
     nekoEl.style.imageRendering = "pixelated";
     nekoEl.style.left = `${nekoPosX}px`;
     nekoEl.style.top = `${nekoPosY}px`;
+    nekoEl.style.zIndex = 1000;
+    nekoEl.onclick = () => {
+      following = !following;
+      mousePosX = 0;
+      mousePosY = 0;
+    };
 
     document.body.appendChild(nekoEl);
 
     document.onmousemove = (event) => {
-      mousePosX = event.clientX;
-      mousePosY = event.clientY;
+      if (following) {
+        mousePosX = event.clientX;
+        mousePosY = event.clientY;
+      }
     };
 
-    window.onekoInterval = setInterval(frame, 120);
+    window.onekoInterval = setInterval(frame, 90);
   }
 
   function setSprite(name, frame) {
@@ -165,10 +175,16 @@ function oneko() {
   }
 
   function frame() {
-    frameCount += 1;
     const diffX = nekoPosX - mousePosX;
     const diffY = nekoPosY - mousePosY;
     const distance = Math.sqrt(diffX ** 2 + diffY ** 2);
+  
+    evenFrame = !evenFrame;
+    if (distance < 192 && evenFrame) {
+      return;
+    }
+  
+    frameCount += 1;
 
     if (distance < nekoSpeed || distance < 48) {
       idle();
