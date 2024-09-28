@@ -1,24 +1,26 @@
-// Sourced from https://maia.crimew.gay/oneko.js?h=66720f4, original comment preserved below:
-// based on oneko.js from https://github.com/adryd325/oneko.js, licensed under MIT, with art from https://twitter.com/_Anunnery
+// oneko.js: https://github.com/adryd325/oneko.js
 
-function getRandomInt(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min) + min);
-}
+(function oneko() {
+  const isReducedMotion =
+    window.matchMedia(`(prefers-reduced-motion: reduce)`) === true ||
+    window.matchMedia(`(prefers-reduced-motion: reduce)`).matches === true;
 
-function oneko() {
+  if (isReducedMotion) return;
+
   const nekoEl = document.createElement("div");
-  let following = true;
-  let nekoPosX = getRandomInt(32, window.innerWidth - 63);
-  let nekoPosY = getRandomInt(32, window.innerHeight - 63);
-  let mousePosX = nekoPosX - 32;
-  let mousePosY = nekoPosY - 32;
-  let evenFrame = true;
+  let persistPosition = true;
+
+  let nekoPosX = 32;
+  let nekoPosY = 32;
+  
+  let mousePosX = 0;
+  let mousePosY = 0;
+
   let frameCount = 0;
   let idleTime = 0;
   let idleAnimation = null;
   let idleAnimationFrame = 0;
+
   const nekoSpeed = 10;
   const spriteSets = {
     idle: [[-3, -3]],
@@ -83,33 +85,89 @@ function oneko() {
     ],
   };
 
-  function create() {
+  function init() {
+    let nekoFile = "./oneko.gif"
+    const curScript = document.currentScript
+    if (curScript && curScript.dataset.cat) {
+      nekoFile = curScript.dataset.cat
+    }
+    if (curScript && curScript.dataset.persistPosition) {
+      if (curScript.dataset.persistPosition === "") {
+        persistPosition = true;
+      } else {
+        persistPosition = JSON.parse(curScript.dataset.persistPosition.toLowerCase());
+      }
+    }
+  
+    if (persistPosition) {
+      let storedNeko = JSON.parse(window.localStorage.getItem("oneko"));
+      if (storedNeko !== null) {
+        nekoPosX = storedNeko.nekoPosX;
+        nekoPosY = storedNeko.nekoPosY;
+        mousePosX = storedNeko.mousePosX;
+        mousePosY = storedNeko.mousePosY;
+        frameCount = storedNeko.frameCount;
+        idleTime = storedNeko.idleTime;
+        idleAnimation = storedNeko.idleAnimation;
+        idleAnimationFrame = storedNeko.idleAnimationFrame;
+        nekoEl.style.backgroundPosition = storedNeko.bgPos;
+      }
+    }
+  
     nekoEl.id = "oneko";
+    nekoEl.ariaHidden = true;
     nekoEl.style.width = "32px";
     nekoEl.style.height = "32px";
     nekoEl.style.position = "fixed";
-    //nekoEl.style.pointerEvents = "none";  // so we can click the cat
-    nekoEl.style.backgroundImage = "url('/img/oneko.gif')";
+    nekoEl.style.pointerEvents = "none";
     nekoEl.style.imageRendering = "pixelated";
-    nekoEl.style.left = `${nekoPosX}px`;
-    nekoEl.style.top = `${nekoPosY}px`;
-    nekoEl.style.zIndex = 1000;
-    nekoEl.onclick = () => {
-      following = !following;
-      mousePosX = 0;
-      mousePosY = 0;
-    };
+    nekoEl.style.left = `${nekoPosX - 16}px`;
+    nekoEl.style.top = `${nekoPosY - 16}px`;
+    nekoEl.style.zIndex = 2147483647;
 
+    nekoEl.style.backgroundImage = `url(${nekoFile})`;
+    
     document.body.appendChild(nekoEl);
 
-    document.onmousemove = (event) => {
-      if (following) {
-        mousePosX = event.clientX;
-        mousePosY = event.clientY;
-      }
-    };
+    document.addEventListener("mousemove", function (event) {
+      mousePosX = event.clientX;
+      mousePosY = event.clientY;
+    });
+    
+    if (persistPosition) {
+      window.addEventListener("beforeunload", function (event) {
+        window.localStorage.setItem("oneko", JSON.stringify({
+          nekoPosX: nekoPosX,
+          nekoPosY: nekoPosY,
+          mousePosX: mousePosX,
+          mousePosY: mousePosY,
+          frameCount: frameCount,
+          idleTime: idleTime,
+          idleAnimation: idleAnimation,
+          idleAnimationFrame: idleAnimationFrame,
+          bgPos: nekoEl.style.backgroundPosition
+        }));
+      });
+    }
+    
+    window.requestAnimationFrame(onAnimationFrame);
+  }
 
-    window.onekoInterval = setInterval(frame, 90);
+  let lastFrameTimestamp;
+
+  function onAnimationFrame(timestamp) {
+    // Stops execution if the neko element is removed from DOM
+    if (!nekoEl.isConnected) {
+      return;
+    }
+    if (!lastFrameTimestamp) {
+      lastFrameTimestamp = timestamp;
+    }
+    if (timestamp - lastFrameTimestamp > 100) {
+      lastFrameTimestamp = timestamp;
+      frame();
+    }
+    window.requestAnimationFrame(onAnimationFrame);
   }
 
   function setSprite(name, frame) {
@@ -126,7 +184,11 @@ function oneko() {
     idleTime += 1;
 
     // every ~ 20 seconds
-    if (idleTime > 10 && true && idleAnimation == null) {
+    if (
+      idleTime > 10 &&
+      Math.floor(Math.random() * 200) == 0 &&
+      idleAnimation == null
+    ) {
       let avalibleIdleAnimations = ["sleeping", "scratchSelf"];
       if (nekoPosX < 32) {
         avalibleIdleAnimations.push("scratchWallW");
@@ -142,7 +204,7 @@ function oneko() {
       }
       idleAnimation =
         avalibleIdleAnimations[
-        Math.floor(Math.random() * avalibleIdleAnimations.length)
+          Math.floor(Math.random() * avalibleIdleAnimations.length)
         ];
     }
 
@@ -175,16 +237,10 @@ function oneko() {
   }
 
   function frame() {
+    frameCount += 1;
     const diffX = nekoPosX - mousePosX;
     const diffY = nekoPosY - mousePosY;
     const distance = Math.sqrt(diffX ** 2 + diffY ** 2);
-  
-    evenFrame = !evenFrame;
-    if (distance < 192 && evenFrame) {
-      return;
-    }
-  
-    frameCount += 1;
 
     if (distance < nekoSpeed || distance < 48) {
       idle();
@@ -202,6 +258,7 @@ function oneko() {
       return;
     }
 
+    let direction;
     direction = diffY / distance > 0.5 ? "N" : "";
     direction += diffY / distance < -0.5 ? "S" : "";
     direction += diffX / distance > 0.5 ? "W" : "";
@@ -218,10 +275,5 @@ function oneko() {
     nekoEl.style.top = `${nekoPosY - 16}px`;
   }
 
-  create();
-};
-
-const isReduced = window.matchMedia(`(prefers-reduced-motion: reduce)`) === true || window.matchMedia(`(prefers-reduced-motion: reduce)`).matches === true;
-if (!isReduced) {
-  oneko();
-}
+  init();
+})();
